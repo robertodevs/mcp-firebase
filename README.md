@@ -22,6 +22,7 @@ A Firebase Admin SDK MCP (Model-Controller-Provider) server that provides a set 
 - `create_document`: Create new documents
 - `update_document`: Update existing documents
 - `delete_document`: Remove documents from Firestore
+- `batch_write`: Perform multiple write operations atomically
 
 ## Prerequisites
 
@@ -130,6 +131,33 @@ await get_document(
     collection_id="users",
     document_id="user123"
 )
+
+# Perform atomic batch operations
+await batch_write(operations=[
+    {
+        "type": "create",
+        "collection_id": "users",
+        "document_id": "user1",
+        "data": {
+            "name": "John Doe",
+            "email": "john@example.com"
+        }
+    },
+    {
+        "type": "update",
+        "collection_id": "profiles",
+        "document_id": "profile1",
+        "data": {
+            "age": 30,
+            "occupation": "Developer"
+        }
+    },
+    {
+        "type": "delete",
+        "collection_id": "temp",
+        "document_id": "temp1"
+    }
+])
 ```
 
 ## Response Format

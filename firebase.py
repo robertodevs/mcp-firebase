@@ -294,6 +294,74 @@ async def delete_document(collection_id: str, document_id: str) -> Dict[str, Any
             "error": str(e)
         }
 
+@mcp.tool()
+async def batch_write(operations: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Perform multiple write operations atomically in a batch.
+    
+    Args:
+        operations: List of operations to perform. Each operation should be a dictionary with:
+            - type: The operation type ('create', 'update', or 'delete')
+            - collection_id: The collection to operate on
+            - document_id: The document ID to operate on
+            - data: The data to write (for 'create' and 'update' operations)
+    
+    Example:
+        operations = [
+            {
+                "type": "create",
+                "collection_id": "users",
+                "document_id": "user1",
+                "data": {"name": "John"}
+            },
+            {
+                "type": "update",
+                "collection_id": "profiles",
+                "document_id": "profile1",
+                "data": {"age": 30}
+            },
+            {
+                "type": "delete",
+                "collection_id": "temp",
+                "document_id": "temp1"
+            }
+        ]
+    """
+    try:
+        # Create a new batch
+        batch = db.batch()
+        
+        # Process each operation
+        for op in operations:
+            # Get document reference
+            doc_ref = db.collection(op['collection_id']).document(op['document_id'])
+            
+            # Apply the operation based on type
+            if op['type'] == 'create':
+                batch.set(doc_ref, op['data'])
+            elif op['type'] == 'update':
+                batch.update(doc_ref, op['data'])
+            elif op['type'] == 'delete':
+                batch.delete(doc_ref)
+            else:
+                return {
+                    "success": False,
+                    "error": f"Invalid operation type: {op['type']}"
+                }
+        
+        # Commit the batch
+        batch.commit()
+        
+        return {
+            "success": True,
+            "message": f"Batch write completed successfully with {len(operations)} operations",
+            "operations_count": len(operations)
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
 if __name__ == "__main__":
     try:
         # Run the MCP server
