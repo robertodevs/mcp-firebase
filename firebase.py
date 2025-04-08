@@ -125,6 +125,82 @@ async def update_user(user_id: str, email: Optional[str] = None, display_name: O
             "error": str(e)
         }
 
+@mcp.tool()
+async def verify_email(user_id: str, action_url: str = None) -> Dict[str, Any]:
+    """Generate and send an email verification link to a user.
+    
+    Args:
+        user_id: The user's UID
+        action_url: Optional. The URL to redirect to after email verification.
+                   If not provided, the default Firebase action URL will be used.
+    """
+    try:
+        # Get the user to verify their email exists
+        user = auth.get_user(user_id)
+        
+        # Generate the email verification link
+        action_code_settings = None
+        if action_url:
+            action_code_settings = auth.ActionCodeSettings(
+                url=action_url,
+                handle_code_in_app=True
+            )
+            
+        link = auth.generate_email_verification_link(
+            user.email,
+            action_code_settings=action_code_settings,
+            app=None
+        )
+        
+        return {
+            "success": True,
+            "email": user.email,
+            "verification_link": link,
+            "message": f"Verification email link generated for user {user_id}"
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@mcp.tool()
+async def reset_password(email: str, action_url: str = None) -> Dict[str, Any]:
+    """Generate a password reset link for a user.
+    
+    Args:
+        email: The user's email address
+        action_url: Optional. The URL to redirect to after password reset.
+                   If not provided, the default Firebase action URL will be used.
+    """
+    try:
+        # Configure the action code settings if a custom URL is provided
+        action_code_settings = None
+        if action_url:
+            action_code_settings = auth.ActionCodeSettings(
+                url=action_url,
+                handle_code_in_app=True
+            )
+        
+        # Generate the password reset link
+        reset_link = auth.generate_password_reset_link(
+            email,
+            action_code_settings=action_code_settings,
+            app=None
+        )
+        
+        return {
+            "success": True,
+            "email": email,
+            "reset_link": reset_link,
+            "message": f"Password reset link generated for {email}"
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
 # Firestore Tools
 @mcp.tool()
 async def get_collections() -> Dict[str, Any]:
