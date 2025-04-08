@@ -61,20 +61,113 @@ A Firebase Admin SDK MCP (Model-Controller-Provider) server that provides a set 
 
 1. **Start the MCP Server**
 
+   You can run the server in several ways:
+
    ```bash
-   python firebase.py
+   # Using the MCP CLI (recommended)
+   mcp dev firebase.py
+
+   # With environment variables
+   mcp dev firebase.py -v FIREBASE_KEY=path/to/key.json
+
+   # With custom name
+   mcp dev firebase.py --name "Firebase Tools Server"
+
+   # Load environment variables from file
+   mcp dev firebase.py -f .env
    ```
 
-   The server will start in SSE (Server-Sent Events) mode.
+2. **Install in Claude Desktop**
 
-2. **Using with Cursor IDE**
+   ```bash
+   # Basic installation
+   mcp install firebase.py
 
-   - Open your project in Cursor IDE
-   - The AI assistant will automatically detect and use the available MCP tools
+   # Install with custom name
+   mcp install firebase.py --name "Firebase Tools"
 
-3. **Using with Claude Desktop**
-   - Ensure the MCP server is running
-   - Connect Claude Desktop to the local MCP server
+   # Install with environment variables
+   mcp install firebase.py -v FIREBASE_KEY=path/to/key.json -v OTHER_VAR=value
+   mcp install firebase.py -f .env
+   ```
+
+3. **Direct Execution**
+
+   For advanced scenarios, you can run the server directly:
+
+   ```python
+   from mcp.server.fastmcp import FastMCP
+
+   mcp = FastMCP("Firebase Tools")
+
+   if __name__ == "__main__":
+       mcp.run()
+   ```
+
+   Then run with:
+
+   ```bash
+   python firebase.py
+   # or
+   mcp run firebase.py
+   ```
+
+## Debugging
+
+1. **Server Logs**
+
+   The MCP server provides detailed logging. You can enable debug logs by setting the environment variable:
+
+   ```bash
+   mcp dev firebase.py -v MCP_LOG_LEVEL=debug
+   ```
+
+2. **Lifespan Management**
+
+   For debugging initialization and cleanup, implement the lifespan API:
+
+   ```python
+   from contextlib import asynccontextmanager
+   from collections.abc import AsyncIterator
+   from mcp.server import Server
+
+   @asynccontextmanager
+   async def server_lifespan(server: Server) -> AsyncIterator[dict]:
+       # Initialize Firebase on startup
+       firebase_app = initialize_firebase()
+       try:
+           yield {"firebase": firebase_app}
+       finally:
+           # Cleanup on shutdown
+           await firebase_app.delete()
+
+   # Pass lifespan to server
+   server = Server("firebase-tools", lifespan=server_lifespan)
+   ```
+
+3. **Tool Testing**
+
+   You can test individual tools using the MCP CLI:
+
+   ```bash
+   # Test a specific tool
+   mcp test firebase.py --tool create_user
+
+   # Test with specific arguments
+   mcp test firebase.py --tool create_user --args '{"email": "test@example.com"}'
+   ```
+
+4. **Integration Testing**
+
+   For testing the full server integration:
+
+   ```bash
+   # Start server in test mode
+   mcp dev firebase.py --test
+
+   # In another terminal, run integration tests
+   mcp test-integration firebase.py
+   ```
 
 ## Usage Examples
 
