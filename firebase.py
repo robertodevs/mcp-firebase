@@ -8,7 +8,7 @@ import json
 import ast
 
 # Initialize Firebase with credentials from service account
-cred = credentials.Certificate("/Users/robertojuarez/Documents/personal/weather/service-account-key.json")
+cred = credentials.Certificate("/Users/robertojuarez/Documents/personal/firebase-mcp/service-account-key.json")
 firebase_admin.initialize_app(cred)
 
 # Initialize Firestore client
